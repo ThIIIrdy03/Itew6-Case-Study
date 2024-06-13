@@ -1,77 +1,94 @@
 <template>
+    <!-- Dashboard view component -->
     <DashboardView />
     <div class="container">
-      <div class="hello">
-        <button v-if="!isPatient && !isAdmin" class="btn btn-info btn-sm m-1" @click="addMedicalRecord()">Add Medical Record</button>
-        <table class="table table-striped table-bordered">
-          <thead class="thead-dark">
-            <tr>
-              <th>ID</th>
-              <th>Patient Name</th>
-              <th>Details</th>
-              <th v-if="isAdmin || isDoctor">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="record in records" :key="record.id">
-              <td>{{ record.id }}</td>
-              <td>{{ record.PatientName }}</td>
-              <td>{{ record.RecordDetails }}</td>
-              <td>
-                <button v-if="isAdmin || isDoctor" class="btn btn-warning btn-sm m-1" @click="editMedicalRecord(record)">Edit</button>
-                <button v-if="isAdmin" class="btn btn-danger btn-sm m-1" @click="deleteMedicalRecord(record)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-  
-      <Modal v-if="showAddMedicalRecord" @close="showAddMedicalRecord = false">
-        <template v-slot:header>
-          <h5>Add New Medical Record</h5>
-        </template>
-        <template v-slot:body>
-          <form @submit.prevent="postMedicalRecord()" class="registration-form">
-            <div class="form-group">
-              <label for="patientName">Patient Name</label>
-              <select id="patientName" class="form-control" v-model="newMedicalRecordData.patientID" required>
-                <option value="" disabled selected>Select Patient</option>
-                <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="recordDetails">Record Details:</label>
-              <textarea type="text" class="form-control" id="recordDetails" v-model="newMedicalRecordData.RecordDetails"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary m-1">Add Record</button>
-          </form>
-          <div v-if="error" class="error">{{ error }}</div>
-        </template>
-      </Modal>
-  
-      <Modal v-if="showEditMedicalRecord" @close="showEditMedicalRecord = false">
-        <template v-slot:header>
-          <h5>Edit Medical Record</h5>
-        </template>
-        <template v-slot:body>
-          <form @submit.prevent="updateMedicalRecord()" class="registration-form">
-            <div class="form-group">
-              <label for="patientName">Patient Name</label>
-              <select id="patientName" class="form-control" v-model="editMedicalRecordData.patientID" required>
-                <option value="" disabled selected>Select Patient</option>
-                <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="recordDetails">Record Details:</label>
-              <textarea type="text" class="form-control" id="recordDetails" v-model="editMedicalRecordData.RecordDetails"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary m-1">Update Record</button>
-          </form>
-        </template>
-      </Modal>
+        <div class="hello">
+            <!-- Button to add medical record -->
+            <button v-if="!isPatient && !isAdmin" class="btn btn-info btn-sm m-1" @click="addMedicalRecord()">Add Medical Record</button>
+            <!-- Table to display medical records -->
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient Name</th>
+                        <th>Details</th>
+                        <th v-if="isAdmin || isDoctor">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Iterate through records -->
+                    <tr v-for="record in records" :key="record.id">
+                        <td>{{ record.id }}</td>
+                        <td>{{ record.PatientName }}</td>
+                        <td>{{ record.RecordDetails }}</td>
+                        <td>
+                            <!-- Edit button for admin and doctor -->
+                            <button v-if="isAdmin || isDoctor" class="btn btn-warning btn-sm m-1" @click="editMedicalRecord(record)">Edit</button>
+                            <!-- Delete button for admin -->
+                            <button v-if="isAdmin" class="btn btn-danger btn-sm m-1" @click="deleteMedicalRecord(record)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal for adding new medical record -->
+        <Modal v-if="showAddMedicalRecord" @close="showAddMedicalRecord = false">
+            <template v-slot:header>
+                <h5>Add New Medical Record</h5>
+            </template>
+            <template v-slot:body>
+                <!-- Form for adding new medical record -->
+                <form @submit.prevent="postMedicalRecord()" class="registration-form">
+                    <div class="form-group">
+                        <label for="patientName">Patient Name</label>
+                        <!-- Dropdown to select patient -->
+                        <select id="patientName" class="form-control" v-model="newMedicalRecordData.patientID" required>
+                            <option value="" disabled selected>Select Patient</option>
+                            <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.name }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordDetails">Record Details:</label>
+                        <!-- Textarea for record details -->
+                        <textarea type="text" class="form-control" id="recordDetails" v-model="newMedicalRecordData.RecordDetails"></textarea>
+                    </div>
+                    <!-- Button to add record -->
+                    <button type="submit" class="btn btn-primary m-1">Add Record</button>
+                </form>
+                <!-- Error message display -->
+                <div v-if="error" class="error">{{ error }}</div>
+            </template>
+        </Modal>
+
+        <!-- Modal for editing medical record -->
+        <Modal v-if="showEditMedicalRecord" @close="showEditMedicalRecord = false">
+            <template v-slot:header>
+                <h5>Edit Medical Record</h5>
+            </template>
+            <template v-slot:body>
+                <!-- Form for editing medical record -->
+                <form @submit.prevent="updateMedicalRecord()" class="registration-form">
+                    <div class="form-group">
+                        <label for="patientName">Patient Name</label>
+                        <!-- Dropdown to select patient -->
+                        <select id="patientName" class="form-control" v-model="editMedicalRecordData.patientID" required>
+                            <option value="" disabled selected>Select Patient</option>
+                            <option v-for="patient in patients" :key="patient.id" :value="patient.id">{{ patient.name }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordDetails">Record Details:</label>
+                        <!-- Textarea for record details -->
+                        <textarea type="text" class="form-control" id="recordDetails" v-model="editMedicalRecordData.RecordDetails"></textarea>
+                    </div>
+                    <!-- Button to update record -->
+                    <button type="submit" class="btn btn-primary m-1">Update Record</button>
+                </form>
+            </template>
+        </Modal>
     </div>
-  </template>
+</template>
   
 
 <script>

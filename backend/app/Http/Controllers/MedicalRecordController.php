@@ -13,27 +13,32 @@ class MedicalRecordController extends Controller
      */
     public function index(Request $request)
     {
+        // Retrieve 'patientID' from the request
         $patientID = $request->input('patientID');
 
-        $query = MedicalRecord::leftjoin('users as patients', 'medical_records.patientID', '=', 'patients.id')
-        ->select('medical_records.*', 'patients.name as PatientName');
+        // Construct the query to fetch medical records with patient names
+        $query = MedicalRecord::leftJoin('users as patients', 'medical_records.patientID', '=', 'patients.id')
+            ->select('medical_records.*', 'patients.name as PatientName');
 
+        // Filter records by patientID if provided
         if ($patientID) {
             $query->where('medical_records.patientID', $patientID);
         }
 
+        // Execute the query
         $medicalRecords = $query->get();
 
+        // Check if records were found
         if ($medicalRecords->count() > 0) {
             return response()->json([
                 'status' => 200,
                 'MedicalRecords' => $medicalRecords
-            ],200);
+            ], 200);
         } else {
             return response()->json([
                 'status' => 404,
                 'Message' => 'No Records Found'
-            ],404); 
+            ], 404); 
         }
     }
 
@@ -42,12 +47,14 @@ class MedicalRecordController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate incoming request data
         $validate = Validator::make($request->all(),
-        [
-            'patientID' => 'required',
-            'RecordDetails' => 'required'
-        ]);
+            [
+                'patientID' => 'required',
+                'RecordDetails' => 'required'
+            ]);
 
+        // Return validation errors if any
         if ($validate->fails()) {
             return response()->json([
                 'status' => 400,
@@ -56,17 +63,20 @@ class MedicalRecordController extends Controller
         }
 
         try {
+            // Create a new medical record
             MedicalRecord::create([
                 'patientID' => $request->patientID,
                 'RecordDetails' => $request->RecordDetails
             ]);
 
+            // Return success response
             return response()->json([
                 'status' => 200,
-                'message' => "Medical Record Created Succesfully"
+                'message' => "Medical Record Created Successfully"
             ], 200);
 
         } catch (\Exception $e) {
+            // Return error response if something went wrong
             return response()->json([
                 'status' => 500,
                 'message' => "Something went wrong: " . $e->getMessage()
@@ -79,8 +89,10 @@ class MedicalRecordController extends Controller
      */
     public function show(string $id)
     {
+        // Find a specific medical record by ID
         $medicalRecord = MedicalRecord::find($id);
 
+        // Check if the record exists
         if ($medicalRecord) {
             return response()->json([
                 'status' => 200,
@@ -99,12 +111,14 @@ class MedicalRecordController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Validate incoming request data
         $validate = Validator::make($request->all(),
-        [
-            'patientID' => 'required',
-            'RecordDetails' => 'required'
-        ]);
+            [
+                'patientID' => 'required',
+                'RecordDetails' => 'required'
+            ]);
 
+        // Return validation errors if any
         if ($validate->fails()) {
             return response()->json([
                 'status' => 400,
@@ -113,19 +127,23 @@ class MedicalRecordController extends Controller
         }
 
         try {
-            $MedicalRecord = MedicalRecord::find($id);
+            // Find the medical record to update
+            $medicalRecord = MedicalRecord::find($id);
             
-            $MedicalRecord->update([
+            // Update the medical record fields
+            $medicalRecord->update([
                 'patientID' => $request->patientID,
                 'RecordDetails' => $request->RecordDetails
             ]);
 
+            // Return success response
             return response()->json([
                 'status' => 200,
-                'message' => "Medical Record updated Succesfully"
+                'message' => "Medical Record updated Successfully"
             ], 200);
 
         } catch (\Exception $e) {
+            // Return error response if something went wrong
             return response()->json([
                 'status' => 500,
                 'message' => "Something went wrong: " . $e->getMessage()
@@ -138,15 +156,19 @@ class MedicalRecordController extends Controller
      */
     public function destroy(string $id)
     {
+        // Find the medical record to delete
         $medicalRecord = MedicalRecord::find($id);
 
+        // Check if the record exists
         if ($medicalRecord) {
+            // Delete the medical record
             $medicalRecord->delete();
             return response()->json([
                 'status' => 200,
-                'message' => "Medical Record deleted succesfully"
+                'message' => "Medical Record deleted successfully"
             ], 200);
         } else {
+            // Return error response if no valid record found to delete
             return response()->json([
                 'status' => 404,
                 'message' => "No valid medical record to delete."

@@ -111,15 +111,15 @@ export default {
     },
     data() {
         return {
-            users: [],
-            showAddUserModal: false,
-            showeditUserModal: false,
+            users: [], // Array to store users
+            showAddUserModal: false, // Boolean to control visibility of Add User modal
+            showeditUserModal: false, // Boolean to control visibility of Edit User modal
             newUserData: {
                 name: '',
                 email: '',
                 password: '',
                 userType: ''
-            },
+            }, // Object to store new user data
             editUserData: {
                 id: '',
                 name: '',
@@ -127,13 +127,14 @@ export default {
                 password: '',
                 userType: '',
                 updated_at: ''
-            }
+            } // Object to store data of the user being edited
         };
     },
     mounted() {
-        this.fetchAllUsers();
+        this.fetchAllUsers(); // Fetch all users when the component is mounted
     },
     methods: {
+        // Fetch all users from the server
         fetchAllUsers() {
             fetch('http://127.0.0.1:8000/api/user', {
                 method: 'GET',
@@ -144,24 +145,26 @@ export default {
             })
                 .then(response => response.json())
                 .then(data => {
-                    this.users = data.UserAccounts;
+                    this.users = data.UserAccounts; // Set users data
                 })
                 .catch(err => {
                     if (err.response) {
-                        this.error = `Error: ${err.response.data.message}`;
+                        this.error = `Error: ${err.response.data.message}`; // Handle response error
                         console.error(err.response.data);
                     } else if (err.request) {
-                        this.error = 'No response from server. Please try again later.';
+                        this.error = 'No response from server. Please try again later.'; // Handle request error
                         console.error(err.request);
                     } else {
-                        this.error = 'Request error. Please check your input and try again.';
+                        this.error = 'Request error. Please check your input and try again.'; // Handle general error
                         console.error('Error', err.message);
                     }
                 });
         },
+        // Show the Add User modal
         addDoctor() {
             this.showAddUserModal = true;
         },
+        // Submit new user data to the server
         async postUser() {
             try {
                 await axios.post('http://127.0.0.1:8000/api/user', this.newUserData, {
@@ -170,18 +173,20 @@ export default {
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
                 });
-                this.showAddUserModal = false;
+                this.showAddUserModal = false; // Close the Add User modal
             } catch (error) {
-                console.error('There was an error adding the user:', error);
+                console.error('There was an error adding the user:', error); // Handle post error
             }
-            this.fetchAllUsers();
+            this.fetchAllUsers(); // Refresh users list
         },
+        // Show the Edit User modal and set user data
         editUser(user) {
             this.editUserData = { ...user };
             this.showeditUserModal = true;
         },
+        // Submit updated user data to the server
         async updateUser() {
-            this.editUserData.updated_at = new Date().toISOString();
+            this.editUserData.updated_at = new Date().toISOString(); // Set updated_at field
             try {
                 await axios.put(`http://127.0.0.1:8000/api/user/${this.editUserData.id}`, this.editUserData, {
                     headers: {
@@ -189,16 +194,17 @@ export default {
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
                 });
-                this.showeditUserModal = false;
-                this.fetchAllUsers();
+                this.showeditUserModal = false; // Close the Edit User modal
+                this.fetchAllUsers(); // Refresh users list
             } catch (error) {
-                console.error('There was an error updating the user:', error);
+                console.error('There was an error updating the user:', error); // Handle update error
             }
         },
+        // Delete a user
         async deleteUser(user) {
             const index = this.users.findIndex(u => u.id === user.id);
             if (index !== -1) {
-                this.users.splice(index, 1);
+                this.users.splice(index, 1); // Optimistically remove user from the list
             }
             try {
                 await axios.delete(`http://127.0.0.1:8000/api/user/${user.id}`, {
@@ -208,7 +214,7 @@ export default {
                     }
                 });
             } catch (error) {
-                console.error('There was an error deleting the user:', error);
+                console.error('There was an error deleting the user:', error); // Handle delete error
             }
         }
     }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -13,17 +12,20 @@ class PatientController extends Controller
      */
     public function index()
     {
+        // Retrieve all users with userType 'patient'
         $patient = User::where('userType', 'patient')->get();
+        
+        // Check if there are any patients
         if ($patient->count() > 0) {
             return response()->json([
                 'status' => 200,
                 'PatientAccounts' => $patient
-            ],200);
+            ], 200);
         } else {
             return response()->json([
                 'status' => 404,
                 'Message' => 'No Records Found'
-            ],404);
+            ], 404);
         }
     }
 
@@ -32,7 +34,7 @@ class PatientController extends Controller
      */
     public function create()
     {
-        
+        // This method is unused, potentially for showing a form in a web context
     }
 
     /**
@@ -40,13 +42,15 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate the incoming request data
         $validate = Validator::make($request->all(), 
         [
-            'name' => 'required | string | max:191',
+            'name' => 'required|string|max:191',
             'email' => 'required|string|email|max:191|unique:users,email',
-            'password' => 'required | string | min:8 | max:191'
+            'password' => 'required|string|min:8|max:191'
         ]);
 
+        // Check if validation fails
         if ($validate->fails()) {
             return response()->json([
                 'status' => 400,
@@ -55,6 +59,7 @@ class PatientController extends Controller
         } 
 
         try {
+            // Create a new patient user
             User::create([
                 'name'=> $request->name,
                 'email'=> $request->email,
@@ -64,10 +69,11 @@ class PatientController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => "Account Created Succesfully"
+                'message' => "Account Created Successfully"
             ], 200);
 
         } catch (\Exception $e) {
+            // Handle any errors that occur during creation
             return response()->json([
                 'status' => 500,
                 'message' => "Something went wrong: " . $e->getMessage()
@@ -85,7 +91,7 @@ class PatientController extends Controller
     
         // Check if the user exists
         if ($user) {
-            // Check if the userType is 'doctor'
+            // Check if the userType is 'patient'
             if ($user->userType === 'patient') {
                 return response()->json([
                     'status' => 200,
@@ -110,14 +116,16 @@ class PatientController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Validate the incoming request data
         $validate = Validator::make($request->all(), 
         [
-            'name' => 'required | string | max:191',
-            'email' => 'required|string|email|max:191|',
-            'password' => 'required | string | min:8 | max:191',
+            'name' => 'required|string|max:191',
+            'email' => 'required|string|email|max:191',
+            'password' => 'required|string|min:8|max:191',
             'userType' => 'required'
         ]);
 
+        // Check if validation fails
         if ($validate->fails()) {
             return response()->json([
                 'status' => 400,
@@ -126,8 +134,10 @@ class PatientController extends Controller
         } 
 
         try {
+            // Find the user by ID
             $account = User::find($id);
 
+            // Update the user data
             $account->update([
                 'name'=> $request->name,
                 'email'=> $request->email,
@@ -137,10 +147,11 @@ class PatientController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => "Account updated Succesfully"
+                'message' => "Account updated Successfully"
             ], 200);
 
         } catch (\Exception $e) {
+            // Handle any errors that occur during update
             return response()->json([
                 'status' => 500,
                 'message' => "Something went wrong: " . $e->getMessage()
@@ -153,13 +164,16 @@ class PatientController extends Controller
      */
     public function destroy(string $id)
     {
+        // Find the user by ID
         $user = User::find($id);
 
+        // Check if the user exists
         if ($user) {
+            // Delete the user
             $user->delete();
             return response()->json([
                 'status' => 200,
-                'message' => "Account deleted succesfully"
+                'message' => "Account deleted successfully"
             ], 200);
         } else {
             return response()->json([

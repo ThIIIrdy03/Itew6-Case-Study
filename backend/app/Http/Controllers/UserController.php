@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
@@ -13,17 +15,17 @@ class UserController extends Controller
      */
     public function index()
     {
-        $account = User::all();
-        if ($account->count() > 0) {
+        $accounts = User::all();
+        if ($accounts->count() > 0) {
             return response()->json([
                 'status' => 200,
-                'UserAccounts' => $account
-            ],200);
+                'UserAccounts' => $accounts
+            ], 200);
         } else {
             return response()->json([
                 'status' => 404,
                 'Message' => 'No Records Found'
-            ],404);
+            ], 404);
         }
     }
 
@@ -34,10 +36,10 @@ class UserController extends Controller
     {
         $validate = Validator::make($request->all(), 
         [
-            'name' => 'required | string | max:191',
+            'name' => 'required|string|max:191',
             'email' => 'required|string|email|max:191|unique:users,email',
-            'password' => 'required | string | min:8 | max:191',
-            'userType' => 'required'
+            'password' => 'required|string|min:8|max:191',
+            'userType' => 'required|string|max:50'
         ]);
 
         if ($validate->fails()) {
@@ -51,13 +53,13 @@ class UserController extends Controller
             User::create([
                 'name'=> $request->name,
                 'email'=> $request->email,
-                'password'=> $request->password,
+                'password'=> Hash::make($request->password),
                 'userType'=> $request->userType
             ]);
 
             return response()->json([
                 'status' => 200,
-                'message' => "Account Created Succesfully"
+                'message' => "Account Created Successfully"
             ], 200);
 
         } catch (\Exception $e) {
@@ -73,14 +75,13 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::find($id);
-
-        if ($user) {
+        try {
+            $user = User::findOrFail($id);
             return response()->json([
                 'status' => 200,
                 'user' => $user
             ], 200);
-        } else {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 404,
                 'message' => "No user found."
@@ -95,10 +96,10 @@ class UserController extends Controller
     {
         $validate = Validator::make($request->all(), 
         [
-            'name' => 'required | string | max:191',
-            'email' => 'required|string|email|max:191|',
-            'password' => 'required | string | min:8 | max:191',
-            'userType' => 'required'
+            'name' => 'required|string|max:191',
+            'email' => 'required|string|email|max:191|unique:users,email,' . $id,
+            'password' => 'sometimes|string|min:8|max:191',
+            'userType' => 'required|string|max:50'
         ]);
 
         if ($validate->fails()) {
@@ -109,20 +110,30 @@ class UserController extends Controller
         } 
 
         try {
-            $account = User::find($id);
+            $account = User::findOrFail($id);
 
-            $account->update([
+            $updateData = [
                 'name'=> $request->name,
                 'email'=> $request->email,
-                'password'=> $request->password,
                 'userType'=> $request->userType
-            ]);
+            ];
+
+            if ($request->has('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+
+            $account->update($updateData);
 
             return response()->json([
                 'status' => 200,
-                'message' => "Account updated Succesfully"
+                'message' => "Account updated Successfully"
             ], 200);
 
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 404,
+                'message' => "No valid account found to update."
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
@@ -136,19 +147,23 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        $user = User::find($id);
-
-        if ($user) {
+        try {
+            $user = User::findOrFail($id);
             $user->delete();
             return response()->json([
                 'status' => 200,
-                'message' => "Account deleted succesfully"
+                'message' => "Account deleted successfully"
             ], 200);
-        } else {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 404,
                 'message' => "No valid account to delete."
             ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => "Something went wrong: " . $e->getMessage()
+            ], 500);
         }
     }
 }

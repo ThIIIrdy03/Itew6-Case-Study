@@ -1,6 +1,7 @@
 <template>
     <DashboardView />
     <div class="hello">
+        <!-- Button to add a new patient -->
         <button class="btn btn-info btn-sm m-1" @click="addPatient()">Add a Patient</button>
         <table class="table table-striped table-bordered">
             <thead class="thead-dark">
@@ -17,16 +18,17 @@
                     <td>{{ patient.name }}</td>
                     <td>{{ patient.email }}</td>
                     <td>
-                        <button v-if="isAdmin || isDoctor" class="btn btn-warning btn-sm m-1"
-                            @click="editPatient(patient)">Edit</button>
-                        <button v-if="isAdmin" class="btn btn-danger btn-sm m-1"
-                            @click="deletePatient(patient)">Delete</button>
+                        <!-- Edit button for admins and doctors -->
+                        <button v-if="isAdmin || isDoctor" class="btn btn-warning btn-sm m-1" @click="editPatient(patient)">Edit</button>
+                        <!-- Delete button for admins only -->
+                        <button v-if="isAdmin" class="btn btn-danger btn-sm m-1" @click="deletePatient(patient)">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
+    <!-- Modal for adding a new patient -->
     <Modal v-if="showAddPatientModal" @close="showAddPatientModal = false">
         <template v-slot:header>
             <h5>Add New Patient</h5>
@@ -43,14 +45,14 @@
                 </div>
                 <div class="form-group">
                     <label for="newPatientPassword">Password</label>
-                    <input type="password" class="form-control" id="newPatientPassword"
-                        v-model="newPatientData.password">
+                    <input type="password" class="form-control" id="newPatientPassword" v-model="newPatientData.password">
                 </div>
                 <button type="submit" class="btn btn-primary">Add</button>
             </form>
         </template>
     </Modal>
 
+    <!-- Modal for editing patient details -->
     <Modal v-if="showEditPatientModal" @close="showEditPatientModal = false">
         <template v-slot:header>
             <h5>Edit Patient Details</h5>
@@ -67,8 +69,7 @@
                 </div>
                 <div class="form-group">
                     <label for="newPatientPassword">Password</label>
-                    <input type="password" class="form-control" id="newPatientPassword"
-                        v-model="editPatientData.password">
+                    <input type="password" class="form-control" id="newPatientPassword" v-model="editPatientData.password">
                 </div>
                 <button type="submit" class="btn btn-primary m-1">Update</button>
             </form>
@@ -89,15 +90,15 @@ export default {
     },
     data() {
         return {
-            patients: [],
-            user: '',
-            showAddPatientModal: false,
-            showEditPatientModal: false,
+            patients: [], // List of patient records
+            user: '', // Current logged-in user
+            showAddPatientModal: false, // Control visibility of Add Patient modal
+            showEditPatientModal: false, // Control visibility of Edit Patient modal
             newPatientData: {
                 name: '',
                 email: '',
                 password: '',
-                userType: 'patient'
+                userType: 'patient' // Default userType to 'patient'
             },
             editPatientData: {
                 id: '',
@@ -111,20 +112,20 @@ export default {
     },
     computed: {
         isAdmin() {
-            return this.user && this.user.userType === 'admin';
+            return this.user && this.user.userType === 'admin'; // Check if the user is an admin
         },
         isDoctor() {
-            return this.user && this.user.userType === 'doctor';
+            return this.user && this.user.userType === 'doctor'; // Check if the user is a doctor
         },
         isPatient() {
-            return this.user && this.user.userType === 'patient';
+            return this.user && this.user.userType === 'patient'; // Check if the user is a patient
         },
     },
     mounted() {
-        this.fetchPatient();
+        this.fetchPatient(); // Fetch patient data when component is mounted
     },
     created() {
-        this.loadUserFromLocalStorage();
+        this.loadUserFromLocalStorage(); // Load user data from local storage when component is created
     },
     methods: {
         fetchPatient() {
@@ -137,9 +138,10 @@ export default {
             })
                 .then(response => response.json())
                 .then(data => {
-                    this.patients = data.PatientAccounts;
+                    this.patients = data.PatientAccounts; // Store fetched patient data
                 })
                 .catch(err => {
+                    // Handle errors
                     if (err.response) {
                         this.error = `Error: ${err.response.data.message}`;
                         console.error(err.response.data);
@@ -153,7 +155,7 @@ export default {
                 });
         },
         addPatient() {
-            this.showAddPatientModal = true;
+            this.showAddPatientModal = true; // Show Add Patient modal
         },
         async postPatient() {
             try {
@@ -163,31 +165,31 @@ export default {
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
                 });
-                this.showAddPatientModal = false;
+                this.showAddPatientModal = false; // Hide Add Patient modal
             } catch (error) {
-                console.error('There was an error adding the product:', error);
+                console.error('There was an error adding the product:', error); // Log error
             }
-            this.fetchPatient();
+            this.fetchPatient(); // Refresh patient data
         },
         editPatient(patient) {
-            this.editPatientData = { ...patient };
-            this.showEditPatientModal = true;
+            this.editPatientData = { ...patient }; // Copy patient data for editing
+            this.showEditPatientModal = true; // Show Edit Patient modal
         },
         async updatePatient() {
-            this.editPatientData.updated_at = new Date().toISOString();
+            this.editPatientData.updated_at = new Date().toISOString(); // Set updated_at timestamp
             await axios.put(`http://127.0.0.1:8000/api/patient/${this.editPatientData.id}`, this.editPatientData, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
                 }
             });
-            this.showEditPatientModal = false;
-            this.fetchPatient();
+            this.showEditPatientModal = false; // Hide Edit Patient modal
+            this.fetchPatient(); // Refresh patient data
         },
         async deletePatient(patient) {
             const index = this.patients.findIndex(p => p.id === patient.id);
             if (index !== -1) {
-                this.patients.splice(index, 1);
+                this.patients.splice(index, 1); // Remove patient from the list
             }
             try {
                 await axios.delete(`http://127.0.0.1:8000/api/patient/${patient.id}`, {
@@ -197,14 +199,14 @@ export default {
                     }
                 });
             } catch (error) {
-                console.error('There was an error deleting the product:', error);
+                console.error('There was an error deleting the product:', error); // Log error
             }
         },
         loadUserFromLocalStorage() {
             const user = localStorage.getItem('user');
             if (user) {
-                this.user = JSON.parse(user);
-                this.editUserData = { ...this.user };
+                this.user = JSON.parse(user); // Parse and store user data from local storage
+                this.editUserData = { ...this.user }; // Copy user data for editing
             }
         },
     }
